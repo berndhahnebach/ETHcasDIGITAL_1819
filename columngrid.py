@@ -32,7 +32,7 @@
 # without the ''' in the FreeCADCmd Python console
 '''
 import sys, os, importlib
-sys.path.append(os.path.join(os.path.expanduser('~'), 'Desktop', 'ETH-FreeCAD'))
+sys.path.append(os.path.join(os.path.expanduser('~'), 'Desktop', 'ETH-FreeCAD', 'scripts'))
 import columngrid
 
 
@@ -109,4 +109,3 @@ print(
     'as well as exported to {}.ifc\n'
     .format(doc_name, export_file, export_file)
 ) 
-
