@@ -20,35 +20,21 @@
 # *                                                                         *
 # ***************************************************************************
 
-
-# ***************************************************************************
 import os
 import FreeCAD
 import Arch
 import Draft
+import Part
 import importIFC
 from FreeCAD import Vector as vec
+if FreeCAD.GuiUp:
+    import FreeCADGui
 
 
 # ***************************************************************************
-# tested on FreeCAD 0.19 dev (patched by Bernd)
-
-
-# TODO
-# error on first run
-# FreeCADGUi in if schleife
-# gebaeude und site erstellen
-# ifc types
-# properties
-# material
-# daemmung
-# wie kursaufbau ???
-# als FreeCAD macro abspeichern !!!
-
-# ***************************************************************************
-# how to run in a Python console in FreeCAD Gui or in FreeCADCmd
-
 # to run the script a first time copy the following lines
+# the script has to be in directory YOURHOME/Desktop/ETH-FreeCAD/scripts
+# works on Linux and Windows
 # without the ''' in the FreeCADCmd Python console
 '''
 import sys, os, importlib
@@ -83,6 +69,12 @@ dach_dicke = 300
 
 haus_anzahl = 4
 
+# init of some values needed
+haus_summe = haus_anzahl * (haus_b + trennwand_dicke)
+reihenhaus_laenge = haus_summe - trennwand_dicke + 2 * seitenwand_dicke
+hbase_x = base_x  # local x-base of every house, start with global x-base
+obj_ifc = []
+
 
 # get doc name and export name
 doc_name = os.path.splitext(os.path.basename(str(__file__)))[0]
@@ -92,11 +84,9 @@ export_file = str(__file__).rstrip('.py')
 # create a new document, to have something to put the objects in
 doc_obj = FreeCAD.newDocument(doc_name)
 
-# init of some values needed
-reihenhaus_laenge = haus_anzahl * (haus_b + trennwand_dicke) - trennwand_dicke + 2 * seitenwand_dicke
-hbase_x = base_x  # local x-base of every house, start with global x-base
-obj_ifc = []
 
+# ***************************************************************************
+# lets start with geometry creation
 
 # *******************************************
 # bodenplatte
@@ -125,7 +115,7 @@ for i, hs in enumerate(range(haus_anzahl)):
     # *******************************************
     anfhaus = 0
     endhaus = haus_anzahl - 1
-    
+
     # *******************************************
     # trennwaende, anfangswand
     Trenn_wand_name = "Trennwand" + str(i + 1)
@@ -256,7 +246,6 @@ for i, hs in enumerate(range(haus_anzahl)):
     doc_obj.recompute()
     obj_ifc.append(terrasse_win_obj)
 
-
     # *******************************************
     # dach mit ablauf
     if i == anfhaus:
@@ -303,55 +292,52 @@ for i, hs in enumerate(range(haus_anzahl)):
             base_y,
             haus_h+eg_boden_roh+dach_dicke,
         )
-    # make Faces out of the Points
+        # make lines and Faces out of the Points
+    l1 = Part.makeLine(P1, P2)
+    l2 = Part.makeLine(P2, P3)
+    l3 = Part.makeLine(P3, P4)
+    l4 = Part.makeLine(P4, P1)
+    face1 = Part.Face(Part.Wire([l1, l2, l3, l4]))
+    schwerpunkt_face1 = face1.CenterOfMass
+    P5 = vec(
+        schwerpunkt_face1.x,
+        schwerpunkt_face1.y,
+        haus_h+eg_boden_roh+dach_dicke-100,
+    )
+    l5 = Part.makeLine(P1, P5)
+    l6 = Part.makeLine(P2, P5)
+    l7 = Part.makeLine(P3, P5)
+    l8 = Part.makeLine(P4, P5)
+    face2 = Part.Face(Part.Wire([l1, l6, l5]))
+    face3 = Part.Face(Part.Wire([l2, l7, l6]))
+    face4 = Part.Face(Part.Wire([l3, l8, l7]))
+    face5 = Part.Face(Part.Wire([l4, l5, l8]))
+    dablauf_partobj = FreeCAD.ActiveDocument.addObject("Part::Feature", "dablauf_solid")
+    dablauf_partobj.Shape = Part.Solid(Part.Shell([face1, face2, face3, face4, face5]))
+
+    # arch ablaufobjekt (riesen aussparung)
+    dablauf_obj = Arch.makeStructure(baseobj=dablauf_partobj)
+
+    # dach
     dach_base = Draft.makeWire([P1, P2, P3, P4], closed=True)
     dach_obj = Arch.makeStructure(
         baseobj=dach_base,
         height=dach_dicke
     )
-    # get the ablauf punkt
+    # geneigtes dach mit ablauf, remove dachablauf from dach
+    Arch.removeComponents([dablauf_obj], dach_obj)
     doc_obj.recompute()
-    schwerpunkt_dach_base = dach_base.Shape.CenterOfMass
-    P5 = vec(
-        schwerpunkt_dach_base.x,
-        schwerpunkt_dach_base.y,
-        haus_h+eg_boden_roh+dach_dicke-100,
-    )
-    W1 = Draft.makeWire([P1, P2, P3, P4], closed=True)
-    W2 = Draft.makeWire([P1, P2, P5], closed=True)
-    W3 = Draft.makeWire([P2, P3, P5], closed=True)
-    W4 = Draft.makeWire([P3, P4, P5], closed=True)
-    W5 = Draft.makeWire([P4, P1, P5], closed=True)
-    doc_obj.recompute()
-    # make a Shell out of the Faces
-    # Draft upgrade returns list inside lists ... see wiki
-    dablauf_shell = Draft.upgrade([W1, W2, W3, W4, W5], delete=True)[0][0]
-    doc_obj.recompute()
-    # make a Solid out of the Shell
-    dablauf_obj = Draft.upgrade([dablauf_shell], delete=True)[0][0]
-    doc_obj.recompute()
-
-    # *******************************************
-    # geneigtes dach
-    # remove dachablauf from dach
-    # all this could have been done with Part and bool tools might be smarter
-    Arch.removeComponents([dablauf_obj],dach_obj)
-    doc_obj.recompute()
-    obj_ifc.append(dach_obj)
 
     # *******************************************
     hbase_x += (haus_b + trennwand_dicke)
 doc_obj.recompute()
 
 
-'''
-# dimensions
-dim1 = Draft.makeDimension(
-    vec(base_x, base_y, eg_boden_roh), vec(base_x, base_y, eg_boden_roh)
-)
-'''
-
-doc_obj.recompute()
+# ***************************************************************************
+# nice model display in Gui
+if FreeCAD.GuiUp:
+    FreeCADGui.SendMsgToActiveView("ViewFit")
+    FreeCADGui.ActiveDocument.activeView().viewIsometric()
 
 
 # export objects to ifc
@@ -359,9 +345,6 @@ importIFC.export(obj_ifc, export_file + ".ifc")
 
 
 # save and close document
-import FreeCADGui
-FreeCADGui.SendMsgToActiveView("ViewFit")
-FreeCADGui.ActiveDocument.activeView().viewIsometric()
 doc_obj.saveAs(export_file + ".FCStd")
 FreeCAD.closeDocument(doc_name)
 
