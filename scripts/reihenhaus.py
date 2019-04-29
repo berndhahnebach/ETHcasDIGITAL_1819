@@ -326,6 +326,7 @@ for i, hs in enumerate(range(haus_anzahl)):
     )
     # geneigtes dach mit ablauf, remove dachablauf from dach
     Arch.removeComponents([dablauf_obj], dach_obj)
+    obj_ifc.append(dach_obj)
     doc_obj.recompute()
 
     # *******************************************
