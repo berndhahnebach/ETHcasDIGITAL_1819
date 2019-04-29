@@ -26,11 +26,13 @@ dim1 = Draft.makeDimension(
 
 # TODO
 # error on first run
-# FreeCADGUi in if schleife
-# gebaeude und site erstellen
-# ifc types
+# ifc types, ein error
+
+# export ohne ifcspace und mit
+
 # properties
 # material
 # daemmung
+
 # wie kursaufbau ???
 # als FreeCAD macro abspeichern !!!

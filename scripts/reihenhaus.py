@@ -73,8 +73,7 @@ haus_anzahl = 4
 haus_summe = haus_anzahl * (haus_b + trennwand_dicke)
 reihenhaus_laenge = haus_summe - trennwand_dicke + 2 * seitenwand_dicke
 hbase_x = base_x  # local x-base of every house, start with global x-base
-obj_ifc = []
-
+rae_ifc = []
 
 # get doc name and export name
 doc_name = os.path.splitext(os.path.basename(str(__file__)))[0]
@@ -107,23 +106,30 @@ bpl_obj = Arch.makeStructure(
 # thus set extrude Normale downwards
 bpl_obj.Normal = vec(0, 0, -1)
 doc_obj.recompute()
-obj_ifc.append(bpl_obj)
-
+bpl_obj.IfcType = 'Footing'
+bpl_obj.PredefinedType = 'USERDEFINED'
+bpl_building = Arch.makeBuilding([bpl_obj], name="Reihenhaus_Fundation")
+site = Arch.makeSite([bpl_building], name="ETH-Reihenhaus")
 
 for i, hs in enumerate(range(haus_anzahl)):
 
     # *******************************************
-    anfhaus = 0
-    endhaus = haus_anzahl - 1
+    # helper to easily find anfangshaus and endhaus
+    anfhaus = True if i == 0 else False
+    endhaus = True if i == (haus_anzahl - 1) else False
+
+    # *******************************************
+    # gebaeude obj
+    building = Arch.makeBuilding([], name="Haus_"+str(i+1))
 
     # *******************************************
     # trennwaende, anfangswand
-    Trenn_wand_name = "Trennwand" + str(i + 1)
+    trenn_wand_name = "Trennwand" + str(i + 1)
     trennwand_base = Draft.makeLine(
         vec(hbase_x, base_y, eg_boden_roh),
         vec(hbase_x, haus_t, eg_boden_roh)
     )
-    if i == anfhaus:
+    if anfhaus:
         anfangswand_obj = Arch.makeWall(
             trennwand_base,
             length=None,
@@ -132,7 +138,7 @@ for i, hs in enumerate(range(haus_anzahl)):
             align="Right",
             name="Anfwand"
         )
-        obj_ifc.append(anfangswand_obj)
+        Arch.addComponents(anfangswand_obj, building)
     else:
         trennwand_obj = Arch.makeWall(
             trennwand_base,
@@ -140,13 +146,13 @@ for i, hs in enumerate(range(haus_anzahl)):
             width=trennwand_dicke,
             height=haus_h,
             align="Right",
-            name=Trenn_wand_name
+            name=trenn_wand_name
         )
-        obj_ifc.append(trennwand_obj)
+        Arch.addComponents(trennwand_obj, building)
 
     # *******************************************
     # endwand
-    if i == endhaus:
+    if endhaus:
         endwand_base = Draft.makeLine(
             vec(hbase_x + haus_b + seitenwand_dicke, base_y, eg_boden_roh),
             vec(hbase_x + haus_b + seitenwand_dicke, haus_t, eg_boden_roh)
@@ -159,7 +165,7 @@ for i, hs in enumerate(range(haus_anzahl)):
                 align="Right",
                 name="Endwand"
         )
-        obj_ifc.append(endwand_obj)
+        Arch.addComponents(endwand_obj, building)
 
     # *******************************************
     # vorderwand
@@ -177,7 +183,7 @@ for i, hs in enumerate(range(haus_anzahl)):
         name=vor_wand_name
     )
     doc_obj.recompute()
-    obj_ifc.append(vorderwand_obj)
+    Arch.addComponents(vorderwand_obj, building)
 
     # *******************************************
     # fenster in vorderwand
@@ -244,11 +250,11 @@ for i, hs in enumerate(range(haus_anzahl)):
     )
     terrasse_win_obj.Hosts = []
     doc_obj.recompute()
-    obj_ifc.append(terrasse_win_obj)
+    Arch.addComponents(terrasse_win_obj, building)
 
     # *******************************************
     # dach mit ablauf
-    if i == anfhaus:
+    if anfhaus:
         P1 = vec(
             hbase_x-seitenwand_dicke,
             base_y,
@@ -270,7 +276,7 @@ for i, hs in enumerate(range(haus_anzahl)):
             base_y+haus_t,
             haus_h+eg_boden_roh+dach_dicke,
         )
-    if i == endhaus:
+    if endhaus:
         P3 = vec(
             hbase_x+haus_b+seitenwand_dicke,
             base_y+haus_t,
@@ -326,10 +332,29 @@ for i, hs in enumerate(range(haus_anzahl)):
     )
     # geneigtes dach mit ablauf, remove dachablauf from dach
     Arch.removeComponents([dablauf_obj], dach_obj)
-    obj_ifc.append(dach_obj)
     doc_obj.recompute()
+    # dach_obj.IfcType = 'Roof'
+    # dach_obj.PredefinedType = 'FLAT_ROOF'
+    Arch.addComponents(dach_obj, building)
 
     # *******************************************
+    # raeume
+    raum_partobj = doc_obj.addObject("Part::Box", "Raum_part")
+    raum_partobj.Length = haus_b
+    raum_partobj.Width = haus_t
+    raum_partobj.Height = haus_h
+    raum_partobj.Placement.Base = (hbase_x, base_y, eg_boden_roh)
+    raum_obj = Arch.makeSpace(raum_partobj)
+    doc_obj.recompute()
+    Arch.addComponents(raum_obj, building)
+    rae_ifc.append(raum_obj)
+
+    # *******************************************
+    # add building to site
+    Arch.addComponents(building, site)
+
+    # *******************************************
+    #  set hbase_x to the next haus
     hbase_x += (haus_b + trennwand_dicke)
 doc_obj.recompute()
 
@@ -342,8 +367,8 @@ if FreeCAD.GuiUp:
 
 
 # export objects to ifc
-importIFC.export(obj_ifc, export_file + ".ifc")
-
+importIFC.export(site, export_file + "_std.ifc")
+importIFC.export(rae_ifc, export_file + "_raeume.ifc")
 
 # save and close document
 doc_obj.saveAs(export_file + ".FCStd")
