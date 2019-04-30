@@ -109,8 +109,15 @@ bpl_obj.Normal = vec(0, 0, -1)
 doc_obj.recompute()
 bpl_obj.IfcType = 'Footing'
 bpl_obj.PredefinedType = 'USERDEFINED'
+bpl_obj.IfcProperties = {
+    'FireRating': 'Pset_ETHCommon;;IfcLabel;;EI90',
+    'IsExternal': 'Pset_ETHCommon;;IfcBoolean;;False',
+    'LoadBearing': 'Pset_ETHCommon;;IfcBoolean;;True',
+    'Status': 'Pset_ETHCommon;;IfcLabel;;New'
+}
 bpl_building = Arch.makeBuilding([bpl_obj], name="Reihenhaus_Fundation")
 site = Arch.makeSite([bpl_building], name="ETH-Reihenhaus")
+
 
 for i, hs in enumerate(range(haus_anzahl)):
 
@@ -120,36 +127,37 @@ for i, hs in enumerate(range(haus_anzahl)):
     endhaus = True if i == (haus_anzahl - 1) else False
 
     # *******************************************
-    # gebaeude obj
+    # group objs
     building = Arch.makeBuilding([], name="Haus_"+str(i+1))
+    Arch.addComponents(building, site)
 
     # *******************************************
-    # trennwaende, anfangswand
-    trenn_wand_name = "Trennwand" + str(i + 1)
+    # trennwand
+    trennwand_name = "Trennwand" + str(i + 1)
     trennwand_base = Draft.makeLine(
         vec(hbase_x, base_y, eg_boden_roh),
         vec(hbase_x, haus_t, eg_boden_roh)
     )
     if anfhaus:
-        anfangswand_obj = Arch.makeWall(
-            trennwand_base,
-            length=None,
-            width=seitenwand_dicke,
-            height=haus_h,
-            align="Right",
-            name="Anfwand"
-        )
-        Arch.addComponents(anfangswand_obj, building)
+        # trennwand ist Seitenwand
+        trennwand_width = seitenwand_dicke
     else:
-        trennwand_obj = Arch.makeWall(
-            trennwand_base,
-            length=None,
-            width=trennwand_dicke,
-            height=haus_h,
-            align="Right",
-            name=trenn_wand_name
-        )
-        Arch.addComponents(trennwand_obj, building)
+        trennwand_width = trennwand_dicke
+    trennwand_obj = Arch.makeWall(
+        trennwand_base,
+        length=None,
+        width=trennwand_width,
+        height=haus_h,
+        align="Right",
+        name=trennwand_name
+    )
+    trennwand_obj.IfcProperties = {
+        'FireRating': 'Pset_ETHCommon;;IfcLabel;;EI90',
+        'IsExternal': 'Pset_ETHCommon;;IfcBoolean;;False',
+        'LoadBearing': 'Pset_ETHCommon;;IfcBoolean;;True',
+        'Status': 'Pset_ETHCommon;;IfcLabel;;New'
+    }
+    Arch.addComponents(trennwand_obj, building)
 
     # *******************************************
     # endwand
@@ -166,6 +174,12 @@ for i, hs in enumerate(range(haus_anzahl)):
                 align="Right",
                 name="Endwand"
         )
+        endwand_obj.IfcProperties = {
+            'FireRating': 'Pset_ETHCommon;;IfcLabel;;EI90',
+            'IsExternal': 'Pset_ETHCommon;;IfcBoolean;;False',
+            'LoadBearing': 'Pset_ETHCommon;;IfcBoolean;;True',
+            'Status': 'Pset_ETHCommon;;IfcLabel;;New'
+        }
         Arch.addComponents(endwand_obj, building)
 
     # *******************************************
@@ -183,7 +197,12 @@ for i, hs in enumerate(range(haus_anzahl)):
         align="Right",
         name=vor_wand_name
     )
-    doc_obj.recompute()
+    vorderwand_obj.IfcProperties = {
+        'FireRating': 'Pset_ETHCommon;;IfcLabel;;EI90',
+        'IsExternal': 'Pset_ETHCommon;;IfcBoolean;;False',
+        'LoadBearing': 'Pset_ETHCommon;;IfcBoolean;;True',
+        'Status': 'Pset_ETHCommon;;IfcLabel;;New'
+    }
     Arch.addComponents(vorderwand_obj, building)
 
     # *******************************************
@@ -206,6 +225,12 @@ for i, hs in enumerate(range(haus_anzahl)):
         placement=eg_win_place
     )
     eg_win_obj.Hosts = [vorderwand_obj]
+    eg_win_obj.IfcProperties = {
+        'FireRating': 'Pset_ETHCommon;;IfcLabel;;EI90',
+        'IsExternal': 'Pset_ETHCommon;;IfcBoolean;;False',
+        'LoadBearing': 'Pset_ETHCommon;;IfcBoolean;;True',
+        'Status': 'Pset_ETHCommon;;IfcLabel;;New'
+    }
     doc_obj.recompute()
 
     # *******************************************
@@ -228,6 +253,12 @@ for i, hs in enumerate(range(haus_anzahl)):
         placement=haupttuer_place
     )
     haupttuer_obj.Hosts = [vorderwand_obj]
+    haupttuer_obj.IfcProperties = {
+        'FireRating': 'Pset_ETHCommon;;IfcLabel;;EI90',
+        'IsExternal': 'Pset_ETHCommon;;IfcBoolean;;False',
+        'LoadBearing': 'Pset_ETHCommon;;IfcBoolean;;True',
+        'Status': 'Pset_ETHCommon;;IfcLabel;;New'
+    }
     doc_obj.recompute()
 
     # *******************************************
@@ -250,6 +281,12 @@ for i, hs in enumerate(range(haus_anzahl)):
         placement=terrasse_win_place
     )
     terrasse_win_obj.Hosts = []
+    terrasse_win_obj.IfcProperties = {
+        'FireRating': 'Pset_ETHCommon;;IfcLabel;;EI90',
+        'IsExternal': 'Pset_ETHCommon;;IfcBoolean;;False',
+        'LoadBearing': 'Pset_ETHCommon;;IfcBoolean;;True',
+        'Status': 'Pset_ETHCommon;;IfcLabel;;New'
+    }
     doc_obj.recompute()
     Arch.addComponents(terrasse_win_obj, building)
 
@@ -335,6 +372,12 @@ for i, hs in enumerate(range(haus_anzahl)):
     Arch.removeComponents([dablauf_obj], dach_obj)
     doc_obj.recompute()
     dach_obj.IfcType = 'Roof'
+    dach_obj.IfcProperties = {
+        'FireRating': 'Pset_ETHCommon;;IfcLabel;;EI90',
+        'IsExternal': 'Pset_ETHCommon;;IfcBoolean;;False',
+        'LoadBearing': 'Pset_ETHCommon;;IfcBoolean;;True',
+        'Status': 'Pset_ETHCommon;;IfcLabel;;New'
+    }
     Arch.addComponents(dach_obj, building)
 
     # *******************************************
@@ -346,12 +389,13 @@ for i, hs in enumerate(range(haus_anzahl)):
     raum_partobj.Placement.Base = (hbase_x, base_y, eg_boden_roh)
     raum_obj = Arch.makeSpace(raum_partobj)
     doc_obj.recompute()
+    raum_obj.IfcProperties = {
+        'FireRating': 'Pset_ETHCommon;;IfcLabel;;EI90',
+        'IsExternal': 'Pset_ETHCommon;;IfcBoolean;;False',
+        'LoadBearing': 'Pset_ETHCommon;;IfcBoolean;;True',
+        'Status': 'Pset_ETHCommon;;IfcLabel;;New'
+    }
     Arch.addComponents(raum_obj, building)
-    rae_ifc.append(raum_obj)
-
-    # *******************************************
-    # add building to site
-    Arch.addComponents(building, site)
 
     # *******************************************
     #  set hbase_x to the next haus
