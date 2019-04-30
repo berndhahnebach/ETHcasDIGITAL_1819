@@ -21,7 +21,6 @@
 # ***************************************************************************
 
 import os
-import time
 import FreeCAD
 import Arch
 import Draft
@@ -67,22 +66,25 @@ seitenwand_dicke = 175
 vorderwand_dicke = 125
 bpl_dicke = 250
 dach_dicke = 300
-
 haus_anzahl = 4
 
 # init of some values needed
 haus_summe = haus_anzahl * (haus_b + trennwand_dicke)
 reihenhaus_laenge = haus_summe - trennwand_dicke + 2 * seitenwand_dicke
 hbase_x = base_x  # local x-base of every house, start with global x-base
-rae_ifc = []
 
+
+# ***************************************************************************
 # get doc name and export name
-doc_name = os.path.splitext(os.path.basename(str(__file__)))[0]
 export_file = str(__file__).rstrip('.py')
-
-
-# create a new document, to have something to put the objects in
+doc_name = os.path.splitext(os.path.basename(str(__file__)))[0]
 doc_obj = FreeCAD.newDocument(doc_name)
+
+# the container
+site = Arch.makeSite([], name="ETH-Reihenhaus")
+raeume_site = Arch.makeSite([], name="ETH-Reihenhaus")
+raeume_building = Arch.makeBuilding([], name="Reihenhaus_Raeume")
+Arch.addComponents(raeume_building, raeume_site)
 
 
 # ***************************************************************************
@@ -116,7 +118,7 @@ bpl_obj.IfcProperties = {
     'Status': 'Pset_ETHCommon;;IfcLabel;;New'
 }
 bpl_building = Arch.makeBuilding([bpl_obj], name="Reihenhaus_Fundation")
-site = Arch.makeSite([bpl_building], name="ETH-Reihenhaus")
+Arch.addComponents(bpl_building, site)
 
 
 for i, hs in enumerate(range(haus_anzahl)):
@@ -395,7 +397,7 @@ for i, hs in enumerate(range(haus_anzahl)):
         'LoadBearing': 'Pset_ETHCommon;;IfcBoolean;;True',
         'Status': 'Pset_ETHCommon;;IfcLabel;;New'
     }
-    Arch.addComponents(raum_obj, building)
+    Arch.addComponents(raum_obj, raeume_building)
 
     # *******************************************
     #  set hbase_x to the next haus
@@ -412,11 +414,10 @@ if FreeCAD.GuiUp:
 
 # export objects to ifc
 importIFC.export(site, export_file + "_std.ifc")
-importIFC.export(rae_ifc, export_file + "_raeume.ifc")
+importIFC.export(raeume_site, export_file + "_raeume.ifc")
 
 # save and close document
 doc_obj.saveAs(export_file + ".FCStd")
-time.sleep(2)
 FreeCAD.closeDocument(doc_name)
 
 
