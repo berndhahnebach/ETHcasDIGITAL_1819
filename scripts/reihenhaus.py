@@ -21,6 +21,7 @@
 # ***************************************************************************
 
 import os
+import time
 import FreeCAD
 import Arch
 import Draft
@@ -333,8 +334,7 @@ for i, hs in enumerate(range(haus_anzahl)):
     # geneigtes dach mit ablauf, remove dachablauf from dach
     Arch.removeComponents([dablauf_obj], dach_obj)
     doc_obj.recompute()
-    # dach_obj.IfcType = 'Roof'
-    # dach_obj.PredefinedType = 'FLAT_ROOF'
+    dach_obj.IfcType = 'Roof'
     Arch.addComponents(dach_obj, building)
 
     # *******************************************
@@ -372,13 +372,15 @@ importIFC.export(rae_ifc, export_file + "_raeume.ifc")
 
 # save and close document
 doc_obj.saveAs(export_file + ".FCStd")
+time.sleep(2)
 FreeCAD.closeDocument(doc_name)
 
 
 # print some status everything worked out very well :-)
 print(
-    '\n{} created and saved into {}.FCStd\n'
-    'as well as exported to {}.ifc\n'
+    '\n* {0} created and saved into {1}.FCStd\n'
+    '* objects exported to {1}_std.ifc\n'
+    '* spaces exported to {1}_raeume.ifc\n'
     .format(doc_name, export_file, export_file)
 )
 
