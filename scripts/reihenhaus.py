@@ -21,7 +21,6 @@
 # ***************************************************************************
 
 import os
-import time
 import FreeCAD
 import Arch
 import Draft
@@ -374,7 +373,6 @@ importIFC.export(raeume_site, export_file + "_raeume.ifc")
 
 # save and close document
 doc_obj.saveAs(export_file + ".FCStd")
-time.sleep(2)
 FreeCAD.closeDocument(doc_name)
 
 
