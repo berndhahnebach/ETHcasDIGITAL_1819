@@ -7,6 +7,9 @@ importlib.reload(reihenhaus)
 flake8 --max-line-length=100 /home/hugo/Desktop/ETH-FreeCAD/scripts/reihenhaus.py
 
 
+flake8 --max-line-length=100 /home/hugo/.FreeCAD/Mod/ETHArchDigital/ethtools/columngrid.py
+flake8 --max-line-length=100 /home/hugo/.FreeCAD/Mod/ETHArchDigital/ethtools/reihenhaus.py
+
 '''
 
 

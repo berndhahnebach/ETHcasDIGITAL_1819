@@ -1,5 +1,4 @@
 # ***************************************************************************
-# *                                                                         *
 # *   Copyright (c) 2019 Bernd Hahnebach <bernd@bimstatik.org>              *
 # *                                                                         *
 # *   This program is free software; you can redistribute it and/or modify  *
@@ -8,47 +7,50 @@
 # *   the License, or (at your option) any later version.                   *
 # *   for detail see the LICENCE text file.                                 *
 # *                                                                         *
-# *   FreeCAD is distributed in the hope that it will be useful,            *
+# *   This program is distributed in the hope that it will be useful,       *
 # *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
 # *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
 # *   GNU Library General Public License for more details.                  *
 # *                                                                         *
 # *   You should have received a copy of the GNU Library General Public     *
-# *   License along with FreeCAD; if not, write to the Free Software        *
+# *   License along with this program; if not, write to the Free Software   *
 # *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  *
 # *   USA                                                                   *
 # *                                                                         *
 # ***************************************************************************
 
+import os
 
-# ***************************************************************************
-# tested on FreeCAD 0.19 dev (patched by Bernd)
+import FreeCAD
+import Arch
+import importIFC
+
+
+# tested on FreeCAD 0.19.16587
 
 
 # ***************************************************************************
 # how to run in a Python console in FreeCAD Gui or in FreeCADCmd
+# copy the lines without the ''' into the FreeCAD Python console
 
-# to run the script a first time copy the following lines 
-# without the ''' in the FreeCADCmd Python console
+# first run after start
 '''
-import sys, os, importlib
-sys.path.append(os.path.join(os.path.expanduser('~'), 'Desktop', 'ETH-FreeCAD', 'scripts'))
-import columngrid
-
+from ethtools import columngrid
 
 '''
 
 
-# to reload the scrip copy the following line
-# without the ''' in the FreeCADCmd Python console
+# rerun the script after changes, the import needs to be done only once
 '''
-importlib.reload(columngrid)
+from importlib import reload
+reload(columngrid)
 
 '''
 
 
 # ***************************************************************************
 # lets start with a simple columns grid
+FreeCAD.Console.PrintMessage("\nLet's start with a simple columns grid\n")
 
 
 # geometry input data, all units in mm
@@ -61,24 +63,16 @@ nx = 16     # anzahl x
 ny = 10     # anzahl y
 
 
-# some modul imports
-import os
-import FreeCAD
-import Arch
-import Draft
-import importIFC
-
-
-# get doc name and export name
+# get doc name and export file name
 doc_name = os.path.splitext(os.path.basename(str(__file__)))[0]
-export_file = str(__file__).rstrip('.py')
+export_file = os.path.join(os.path.expanduser('~'), 'Desktop', doc_name)
 
 
-# create a new document, to have something to put the objects in
+# create a new FreeCAD document, to have something to put the objects in
 doc_obj = FreeCAD.newDocument(doc_name)
 
 
-# list to save the objects which will be exported to ifc
+# a list to put the objects in which will be exported to ifc
 obj_ifc = []
 
 
@@ -104,8 +98,8 @@ FreeCAD.closeDocument(doc_name)
 
 
 # print some status everything worked out very well :-)
-print(
-    '\n{} created and saved into {}.FCStd\n'
-    'as well as exported to {}.ifc\n'
+FreeCAD.Console.PrintMessage(
+    '* {0} created and saved into {1}.FCStd\n'
+    '* columns exported to {1}.ifc\n'
     .format(doc_name, export_file, export_file)
-) 
+)

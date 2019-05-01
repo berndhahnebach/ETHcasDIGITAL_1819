@@ -21,6 +21,7 @@
 # ***************************************************************************
 
 import os
+
 import FreeCAD
 import Arch
 import Draft
@@ -31,28 +32,37 @@ if FreeCAD.GuiUp:
     import FreeCADGui
 
 
-# ***************************************************************************
-# to run the script a first time copy the following lines
-# the script has to be in directory YOURHOME/Desktop/ETH-FreeCAD/scripts
-# works on Linux and Windows
-# without the ''' in the FreeCADCmd Python console
-'''
-import sys, os, importlib
-sys.path.append(os.path.join(os.path.expanduser('~'), 'Desktop', 'ETH-FreeCAD', 'scripts'))
-import reihenhaus
+# tested on FreeCAD 0.19.16587
 
-
-'''
-
-
-# to reload the scrip copy the following line
-# without the ''' in the FreeCADCmd Python console
-'''
-importlib.reload(reihenhaus)
-
-'''
 
 # ***************************************************************************
+# how to run in a Python console in FreeCAD Gui or in FreeCADCmd
+# copy the lines without the ''' into the FreeCAD Python console
+
+# first run after start
+'''
+from ethtools import reihenhaus
+
+'''
+
+
+# rerun the script after changes, the import needs to be done only once
+'''
+from importlib import reload
+reload(reihenhaus)
+
+'''
+
+
+# ***************************************************************************
+FreeCAD.Console.PrintMessage(
+    "\nETH-Reihenhaus, a more sophisticated example\n"
+)
+if FreeCAD.GuiUp:
+    FreeCADGui.updateGui()
+    # this will print message above immediately
+
+
 # geometry input data, all units in mm
 haus_t = 8000  # Aeusseres Rohbaumass
 haus_b = 6000  # Abstand zwischen Wandinnenseiten (nutzbare breite)
@@ -68,6 +78,7 @@ bpl_dicke = 250
 dach_dicke = 300
 haus_anzahl = 4
 
+
 # init of some values needed
 haus_summe = haus_anzahl * (haus_b + trennwand_dicke)
 reihenhaus_laenge = haus_summe - trennwand_dicke + 2 * seitenwand_dicke
@@ -75,9 +86,9 @@ hbase_x = base_x  # local x-base of every house, start with global x-base
 
 
 # ***************************************************************************
-# get doc name and export name
-export_file = str(__file__).rstrip('.py')
+# get doc name and export file name, create a new document
 doc_name = os.path.splitext(os.path.basename(str(__file__)))[0]
+export_file = os.path.join(os.path.expanduser('~'), 'Desktop', doc_name)
 doc_obj = FreeCAD.newDocument(doc_name)
 
 # the container
@@ -422,8 +433,8 @@ FreeCAD.closeDocument(doc_name)
 
 
 # print some status everything worked out very well :-)
-print(
-    '\n* {0} created and saved into {1}.FCStd\n'
+FreeCAD.Console.PrintMessage(
+    '* {0} created and saved into {1}.FCStd\n'
     '* objects exported to {1}_std.ifc\n'
     '* spaces exported to {1}_raeume.ifc\n'
     .format(doc_name, export_file, export_file)
@@ -431,6 +442,6 @@ print(
 
 
 '''
-importlib.reload(reihenhaus)
+reload(reihenhaus)
 
 '''
