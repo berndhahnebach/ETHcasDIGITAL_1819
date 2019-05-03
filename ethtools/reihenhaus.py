@@ -139,6 +139,41 @@ bpl_building = Arch.makeBuilding([bpl_obj], name="Reihenhaus_Fundation")
 Arch.addComponents(bpl_building, site)
 
 
+for i, hs in enumerate(range(haus_anzahl)):
+
+    # *******************************************
+    # group objs
+    building = Arch.makeBuilding([], name="Haus_"+str(i+1))
+    Arch.addComponents(building, site)
+
+    # *******************************************
+    # vorderwand
+    vorderwand_base = Draft.makeLine(
+        vec(hbase_x, base_y, eg_boden_roh),
+        vec(hbase_x + haus_b, base_y, eg_boden_roh)
+    )
+    vor_wand_name = "Vorwand" + str(i + 1)
+    vorderwand_obj = Arch.makeWall(
+        vorderwand_base,
+        length=None,
+        width=vorderwand_dicke,
+        height=haus_h,
+        align="Right",
+        name=vor_wand_name
+    )
+    vorderwand_obj.IfcProperties = {
+        'FireRating': 'Pset_ETHCommon;;IfcLabel;;EI90',
+        'IsExternal': 'Pset_ETHCommon;;IfcBoolean;;False',
+        'LoadBearing': 'Pset_ETHCommon;;IfcBoolean;;True',
+        'Status': 'Pset_ETHCommon;;IfcLabel;;New'
+    }
+    vorderwand_obj.Material = brick
+    doc_obj.recompute()
+    Arch.addComponents(vorderwand_obj, building)
+
+    # *******************************************
+    #  set hbase_x to the next haus
+    hbase_x += (haus_b + trennwand_dicke)
 doc_obj.recompute()
 
 
