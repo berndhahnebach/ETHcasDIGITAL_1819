@@ -411,6 +411,24 @@ for i, hs in enumerate(range(haus_anzahl)):
     Arch.addComponents(dach_obj, building)
 
     # *******************************************
+    # raeume
+    raum_partobj = doc_obj.addObject("Part::Box", "Raum_part")
+    raum_partobj.Length = haus_b
+    raum_partobj.Width = haus_t
+    raum_partobj.Height = haus_h
+    raum_partobj.Placement.Base = (hbase_x, base_y, eg_boden_roh)
+    raum_obj = Arch.makeSpace(raum_partobj)
+    doc_obj.recompute()
+    raum_obj.IfcProperties = {
+        'FireRating': 'Pset_ETHCommon;;IfcLabel;;EI90',
+        'IsExternal': 'Pset_ETHCommon;;IfcBoolean;;False',
+        'LoadBearing': 'Pset_ETHCommon;;IfcBoolean;;True',
+        'Status': 'Pset_ETHCommon;;IfcLabel;;New'
+    }
+    doc_obj.recompute()
+    Arch.addComponents(raum_obj, raeume_building)
+    
+    # *******************************************
     #  set hbase_x to the next haus
     hbase_x += (haus_b + trennwand_dicke)
 doc_obj.recompute()
@@ -425,7 +443,7 @@ if FreeCAD.GuiUp:
 
 # export objects to ifc
 importIFC.export(site, export_file + "_std.ifc")
-# importIFC.export(raeume_site, export_file + "_raeume.ifc")
+importIFC.export(raeume_site, export_file + "_raeume.ifc")
 
 # save and close document
 doc_obj.saveAs(export_file + ".FCStd")
