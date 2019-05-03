@@ -234,6 +234,183 @@ for i, hs in enumerate(range(haus_anzahl)):
     Arch.addComponents(vorderwand_obj, building)
 
     # *******************************************
+    # fenster in vorderwand
+    eg_win_place = FreeCAD.Placement(
+        vec(hbase_x + 1000, 0.0, 1000),
+        FreeCAD.Rotation(vec(1, 0, 0), 90)
+    )
+    eg_win_obj = Arch.makeWindowPreset(
+        "Fixed",
+        width=1000.0,
+        height=1000.0,
+        h1=100.0,
+        h2=100.0,
+        h3=100.0,
+        w1=200.0,
+        w2=100.0,
+        o1=0.0,
+        o2=100.0,
+        placement=eg_win_place
+    )
+    eg_win_obj.Hosts = [vorderwand_obj]
+    eg_win_obj.IfcProperties = {
+        'FireRating': 'Pset_ETHCommon;;IfcLabel;;EI90',
+        'IsExternal': 'Pset_ETHCommon;;IfcBoolean;;False',
+        'LoadBearing': 'Pset_ETHCommon;;IfcBoolean;;True',
+        'Status': 'Pset_ETHCommon;;IfcLabel;;New'
+    }
+    doc_obj.recompute()
+
+    # *******************************************
+    # tuer in vorderwand
+    haupttuer_place = FreeCAD.Placement(
+        vec(hbase_x + 4000, 0.0, eg_boden_roh),
+        FreeCAD.Rotation(vec(1, 0, 0), 90)
+    )
+    haupttuer_obj = Arch.makeWindowPreset(
+        "Glass door",
+        width=1000.0,
+        height=2000.0,
+        h1=100.0,
+        h2=100.0,
+        h3=100.0,
+        w1=200.0,
+        w2=100.0,
+        o1=0.0,
+        o2=100.0,
+        placement=haupttuer_place
+    )
+    haupttuer_obj.Hosts = [vorderwand_obj]
+    haupttuer_obj.IfcProperties = {
+        'FireRating': 'Pset_ETHCommon;;IfcLabel;;EI90',
+        'IsExternal': 'Pset_ETHCommon;;IfcBoolean;;False',
+        'LoadBearing': 'Pset_ETHCommon;;IfcBoolean;;True',
+        'Status': 'Pset_ETHCommon;;IfcLabel;;New'
+    }
+    doc_obj.recompute()
+
+    # *******************************************
+    # rueckwand als riesenfenster
+    terrasse_win_place = FreeCAD.Placement(
+        vec(hbase_x, haus_t-200, eg_boden_roh),
+        FreeCAD.Rotation(vec(1, 0, 0), 90)
+    )
+    terrasse_win_obj = Arch.makeWindowPreset(
+        "Fixed",
+        width=haus_b,
+        height=haus_h,
+        h1=100.0,
+        h2=100.0,
+        h3=100.0,
+        w1=200.0,
+        w2=100.0,
+        o1=0.0,
+        o2=100.0,
+        placement=terrasse_win_place
+    )
+    terrasse_win_obj.Hosts = []
+    terrasse_win_obj.IfcProperties = {
+        'FireRating': 'Pset_ETHCommon;;IfcLabel;;EI90',
+        'IsExternal': 'Pset_ETHCommon;;IfcBoolean;;False',
+        'LoadBearing': 'Pset_ETHCommon;;IfcBoolean;;True',
+        'Status': 'Pset_ETHCommon;;IfcLabel;;New'
+    }
+    doc_obj.recompute()
+    Arch.addComponents(terrasse_win_obj, building)
+
+    # *******************************************
+    # dach mit ablauf
+    if anfhaus:
+        P1 = vec(
+            hbase_x-seitenwand_dicke,
+            base_y,
+            haus_h+eg_boden_roh+dach_dicke,
+        )
+        P2 = vec(
+            hbase_x-seitenwand_dicke,
+            base_y+haus_t,
+            haus_h+eg_boden_roh+dach_dicke,
+        )
+    else:
+        P1 = vec(
+            hbase_x-0.5*trennwand_dicke,
+            base_y,
+            haus_h+eg_boden_roh+dach_dicke,
+        )
+        P2 = vec(
+            hbase_x-0.5*trennwand_dicke,
+            base_y+haus_t,
+            haus_h+eg_boden_roh+dach_dicke,
+        )
+    if endhaus:
+        P3 = vec(
+            hbase_x+haus_b+seitenwand_dicke,
+            base_y+haus_t,
+            haus_h+eg_boden_roh+dach_dicke,
+        )
+        P4 = vec(
+            hbase_x+haus_b+seitenwand_dicke,
+            base_y,
+            haus_h+eg_boden_roh+dach_dicke,
+        )
+    else:
+        P3 = vec(
+            hbase_x+haus_b+0.5*trennwand_dicke,
+            base_y+haus_t,
+            haus_h+eg_boden_roh+dach_dicke,
+        )
+        P4 = vec(
+            hbase_x+haus_b+0.5*trennwand_dicke,
+            base_y,
+            haus_h+eg_boden_roh+dach_dicke,
+        )
+        # make lines and Faces out of the Points
+    l1 = Part.makeLine(P1, P2)
+    l2 = Part.makeLine(P2, P3)
+    l3 = Part.makeLine(P3, P4)
+    l4 = Part.makeLine(P4, P1)
+    face1 = Part.Face(Part.Wire([l1, l2, l3, l4]))
+    schwerpunkt_face1 = face1.CenterOfMass
+    P5 = vec(
+        schwerpunkt_face1.x,
+        schwerpunkt_face1.y,
+        haus_h+eg_boden_roh+dach_dicke-200,
+    )
+    l5 = Part.makeLine(P1, P5)
+    l6 = Part.makeLine(P2, P5)
+    l7 = Part.makeLine(P3, P5)
+    l8 = Part.makeLine(P4, P5)
+    face2 = Part.Face(Part.Wire([l1, l6, l5]))
+    face3 = Part.Face(Part.Wire([l2, l7, l6]))
+    face4 = Part.Face(Part.Wire([l3, l8, l7]))
+    face5 = Part.Face(Part.Wire([l4, l5, l8]))
+    dablauf_partobj = FreeCAD.ActiveDocument.addObject("Part::Feature", "dablauf_solid")
+    dablauf_partobj.Shape = Part.Solid(Part.Shell([face1, face2, face3, face4, face5]))
+
+    # arch ablaufobjekt (riesen aussparung)
+    dablauf_obj = Arch.makeStructure(baseobj=dablauf_partobj)
+
+    # dach
+    dach_base = Draft.makeWire([P1, P2, P3, P4], closed=True)
+    dach_obj = Arch.makeStructure(
+        baseobj=dach_base,
+        height=dach_dicke
+    )
+    # geneigtes dach mit ablauf, remove dachablauf from dach
+    Arch.removeComponents([dablauf_obj], dach_obj)
+    doc_obj.recompute()
+    dach_obj.IfcType = 'Roof'
+    dach_obj.IfcProperties = {
+        'FireRating': 'Pset_ETHCommon;;IfcLabel;;EI90',
+        'IsExternal': 'Pset_ETHCommon;;IfcBoolean;;False',
+        'LoadBearing': 'Pset_ETHCommon;;IfcBoolean;;True',
+        'Status': 'Pset_ETHCommon;;IfcLabel;;New'
+    }
+    dach_obj.Material = concrete
+    doc_obj.recompute()
+    Arch.addComponents(dach_obj, building)
+
+    # *******************************************
     #  set hbase_x to the next haus
     hbase_x += (haus_b + trennwand_dicke)
 doc_obj.recompute()
