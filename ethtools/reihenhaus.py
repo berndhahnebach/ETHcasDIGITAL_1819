@@ -147,6 +147,68 @@ for i, hs in enumerate(range(haus_anzahl)):
     Arch.addComponents(building, site)
 
     # *******************************************
+    # helper to easily find anfangshaus and endhaus
+    anfhaus = True if i == 0 else False
+    endhaus = True if i == (haus_anzahl - 1) else False
+
+    # *******************************************
+    # trennwand
+    trennwand_name = "Trennwand" + str(i + 1)
+    trennwand_base = Draft.makeLine(
+        vec(hbase_x, base_y, eg_boden_roh),
+        vec(hbase_x, haus_t, eg_boden_roh)
+    )
+    if anfhaus:
+        # trennwand ist Seitenwand
+        trennwand_width = seitenwand_dicke
+        trennwand_material = brick
+    else:
+        trennwand_width = trennwand_dicke
+        trennwand_material = concrete
+    trennwand_obj = Arch.makeWall(
+        trennwand_base,
+        length=None,
+        width=trennwand_width,
+        height=haus_h,
+        align="Right",
+        name=trennwand_name
+    )
+    trennwand_obj.IfcProperties = {
+        'FireRating': 'Pset_ETHCommon;;IfcLabel;;EI90',
+        'IsExternal': 'Pset_ETHCommon;;IfcBoolean;;False',
+        'LoadBearing': 'Pset_ETHCommon;;IfcBoolean;;True',
+        'Status': 'Pset_ETHCommon;;IfcLabel;;New'
+    }
+    trennwand_obj.Material = trennwand_material
+    doc_obj.recompute()
+    Arch.addComponents(trennwand_obj, building)
+
+    # *******************************************
+    # endwand
+    if endhaus:
+        endwand_base = Draft.makeLine(
+            vec(hbase_x + haus_b + seitenwand_dicke, base_y, eg_boden_roh),
+            vec(hbase_x + haus_b + seitenwand_dicke, haus_t, eg_boden_roh)
+        )
+        endwand_obj = Arch.makeWall(
+                endwand_base,
+                length=None,
+                width=seitenwand_dicke,
+                height=haus_h,
+                align="Right",
+                name="Endwand"
+        )
+        endwand_obj.IfcProperties = {
+            'FireRating': 'Pset_ETHCommon;;IfcLabel;;EI90',
+            'IsExternal': 'Pset_ETHCommon;;IfcBoolean;;False',
+            'LoadBearing': 'Pset_ETHCommon;;IfcBoolean;;True',
+            'Status': 'Pset_ETHCommon;;IfcLabel;;New'
+        }
+        endwand_obj.Material = brick
+        doc_obj.recompute()
+        Arch.addComponents(endwand_obj, building)
+
+    # *******************************************
     # vorderwand
     vorderwand_base = Draft.makeLine(
         vec(hbase_x, base_y, eg_boden_roh),
