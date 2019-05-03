@@ -73,3 +73,19 @@ class RunReihenhaus():
             FreeCAD.Console.PrintMessage('reload {}\n'.format(modulename))
             from ethtools import reihenhaus
             reload(reihenhaus)
+
+
+class calculateRaumflaechen():
+    def GetResources(self):
+        return {'Pixmap': 'eth_calculate_raumflaechen.svg',
+                'MenuText': 'calculate Raumflaechen',
+                'ToolTip': 'calculate Raumflaechen'}
+
+    def IsActive(self):
+        # the tool is always active, we could omit this dev
+        return True
+
+    def Activated(self):
+        from ethtools.raumflaechen import calculate_raumflaechen as calcrm
+        calcrm()
+

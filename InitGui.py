@@ -43,11 +43,13 @@ class EthCasDigitalWorkbench(Workbench):
 
         tools = [
             'Columngrid',
-            'Reihenhaus'
+            'Reihenhaus',
+            'Raumflaechen'
         ]
 
         FreeCADGui.addCommand(tools[0], commands.RunColumgrid())
         FreeCADGui.addCommand(tools[1], commands.RunReihenhaus())
+        FreeCADGui.addCommand(tools[2], commands.calculateRaumflaechen())
 
         self.appendToolbar('ETHcasDIGITAL', tools)
         self.appendMenu('ETHcasDIGITAL', tools)
