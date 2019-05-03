@@ -97,6 +97,11 @@ raeume_site = Arch.makeSite([], name="ETH-Reihenhaus")
 raeume_building = Arch.makeBuilding([], name="Reihenhaus_Raeume")
 Arch.addComponents(raeume_building, raeume_site)
 
+# the materials, windows, doors and spaces do not get a material
+brick = Arch.makeMaterial('Backstein')
+concrete = Arch.makeMaterial('Beton')
+brick.Color = (1.0, 0.502, 0.0, 0.0)
+concrete.Color = (0.439, 1.0, 0.439, 0.0)
 
 # ***************************************************************************
 # lets start with geometry creation
@@ -128,6 +133,8 @@ bpl_obj.IfcProperties = {
     'LoadBearing': 'Pset_ETHCommon;;IfcBoolean;;True',
     'Status': 'Pset_ETHCommon;;IfcLabel;;New'
 }
+bpl_obj.Material = concrete
+doc_obj.recompute()
 bpl_building = Arch.makeBuilding([bpl_obj], name="Reihenhaus_Fundation")
 Arch.addComponents(bpl_building, site)
 
