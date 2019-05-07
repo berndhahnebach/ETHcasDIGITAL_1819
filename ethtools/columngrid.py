@@ -54,13 +54,13 @@ FreeCAD.Console.PrintMessage("\nLet's start with a simple columns grid\n")
 
 
 # geometry input data, all units in mm
-h = 6000.0  # hoehe
-w1 = 400.0  # breite 1
-w2 = 600.0  # breite 2
-ax = 4000   # abstand x
-ay = 6000   # abstand y
-nx = 16     # anzahl x
-ny = 10     # anzahl y
+h = 2000.0  # hoehe
+w1 = 750.0  # breite 1
+w2 = 500.0  # breite 2
+ax = 6000   # abstand x
+ay = 3000   # abstand y
+nx = 5     # anzahl x
+ny = 20     # anzahl y
 
 
 # get doc name and export file name
@@ -81,6 +81,7 @@ for ix in range(nx):
     for iy in range(ny):
         col = Arch.makeStructure(None, length=w1, width=w2, height=h)
         col.Placement.Base = FreeCAD.Vector(ix * ax, iy * ay, 0.0)
+        col.Label = 'Odilos Pfeiler'
         obj_ifc.append(col)
 
 
